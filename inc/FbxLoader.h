@@ -1,10 +1,10 @@
 #pragma once
 #include<fbxsdk.h>
+#include<fbxsdk\utils\fbxdeformationsevaluator.h>
 #include<d3d11.h>
 #include<DirectXMath.h>
 #include<vector>
 #include<unordered_map>
-
 
 #pragma comment(lib, "libfbxsdk-md.lib")
 #pragma comment(lib, "libxml2-md.lib")
@@ -96,8 +96,6 @@ protected:
 	unsigned int fbx_getMaterialID(const FbxMesh* mesh, int polygon);
 	void fbx_insertVertex(const XMFLOAT3& position, const XMFLOAT3& normal, const XMFLOAT3& binormal, const XMFLOAT3& tangent, const XMFLOAT2& uv, int materialID, unsigned int vertexCount);
 
-
-
 	std::string mPath;
 
 	std::vector<XMFLOAT3> mPositions;
@@ -111,8 +109,6 @@ protected:
 	unsigned int mTotalTriangles = 0;
 	unsigned int mTotalVertices = 0;
 	unsigned int mIndexCount = 0;
-
-
 
 	std::unordered_map<Vertex, unsigned int> mIndexMap;
 };

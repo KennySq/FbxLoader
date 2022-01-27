@@ -1,5 +1,7 @@
 #include"FbxLoader.h"
 
+#include<iostream> 
+
 FbxLoader::FbxLoader(const char* path) noexcept
 	:mPath(path)
 {
@@ -46,19 +48,54 @@ bool FbxLoader::fbx_loadFbx()
 void FbxLoader::fbx_loadNode(FbxNode* node)
 {
 	FbxNodeAttribute* nodeAttribute = node->GetNodeAttribute();
-
+	FbxAMatrix transform = node->EvaluateLocalTransform();
 	if (nodeAttribute != nullptr)
 	{
 		FbxNodeAttribute::EType attr = nodeAttribute->GetAttributeType();
 		if (attr == FbxNodeAttribute::eMesh)
 		{
+
+
 			FbxMesh* mesh = node->GetMesh();
+			int deformCount = mesh->GetDeformerCount();
+
+			for (unsigned int i = 0; i < deformCount; i++)
+			{
+
+				FbxDeformer* deform = mesh->GetDeformer(i, FbxDeformer::eSkin);
+				FbxSkin* skin = reinterpret_cast<FbxSkin*>(deform);
+				if (skin == nullptr)
+				{
+					continue;
+				}
+
+				int clusterCount = skin->GetClusterCount();
+
+				for (unsigned int j = 0; j < clusterCount; j++)
+				{
+					FbxCluster* cluster = skin->GetCluster(j);
+
+					std::string jointName = cluster->GetLink()->GetName();
+					FbxAMatrix transformMatrix;
+					FbxAMatrix transformLinkMatrix;
+					FbxAMatrix globalInverseMatrix;
+
+					cluster->GetTransformMatrix(transformMatrix);
+					cluster->GetTransformLinkMatrix(transformLinkMatrix);
+					globalInverseMatrix = transformLinkMatrix.Inverse();
+
+					
+
+
+				}
+			}
 			fbx_getControlPoints(mesh);
 
 			unsigned int triCount = mesh->GetPolygonCount();
 			unsigned int vertexCount = 0;
 
 			mTotalTriangles += triCount;
+			unsigned int deformCount = mesh->GetDeformerCount();
 
 			for (unsigned int i = 0; i < triCount; i++)
 			{
@@ -67,7 +104,7 @@ void FbxLoader::fbx_loadNode(FbxNode* node)
 				for (unsigned int j = 0; j < polyVertexCount; j++)
 				{
 					int controlPointIndex = mesh->GetPolygonVertex(i, j);
-
+					
 					XMFLOAT3 normal{};
 					XMFLOAT3 binormal{};
 					XMFLOAT3& position = mPositions[controlPointIndex];
@@ -136,11 +173,11 @@ void FbxLoader::fbx_getControlPoints(FbxMesh* mesh)
 	for (unsigned int i = 0; i < count; i++)
 	{
 		XMFLOAT3 position;
-
+		
 		position.x = static_cast<float>(mesh->GetControlPointAt(i).mData[0]);
 		position.y = static_cast<float>(mesh->GetControlPointAt(i).mData[1]);
 		position.z = static_cast<float>(mesh->GetControlPointAt(i).mData[2]);
-
+		
 		mPositions.emplace_back(position);
 	}
 }
